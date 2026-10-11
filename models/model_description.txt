@@ -1,0 +1,218 @@
+MODEL DESCRIPTION
+===============================================================================
+Project : ECG arrhythmia classification under inter-patient vs intra-patient
+          evaluation
+Task    : 5-class beat classification (AAMI EC57: N, S, V, F, Q)
+Code    : src/model.py
+
+
+1. TWO MODELS
+-------------------------------------------------------------------------------
+BaselineCNN     Single-scale. Reads one 1-second beat window. This mirrors the
+                shape of a typical published MIT-BIH CNN and exists as the
+                reference point the proposed model is measured against.
+                44,069 parameters.
+
+MultiScaleCNN   The proposed model. Two convolutional branches with independent
+                weights - one on the beat window, one on a 4-second rhythm
+                context window - fused with four explicit RR-interval features
+                before the classifier.
+                113,413 parameters.
+
+
+2. WHY A SECOND BRANCH
+-------------------------------------------------------------------------------
+The design targets one diagnosable failure rather than general capacity.
+
+Supraventricular ectopic beats (class S) are defined by WHEN they arrive, not
+by how they look. A premature atrial beat can be almost morphologically
+identical to a normal one; what distinguishes it is that it arrives early,
+usually followed by a compensatory pause. A network that only ever sees a
+1-second window centred on the R peak is structurally blind to this, which is
+why S is the weakest column in nearly every published inter-patient table.
+
+The rhythm-context branch and the RR features both address that blindness. The
+ablation study tests whether they actually do (results/results.csv, rows
+A3_no_context and A4_no_rr).
+
+
+3. ARCHITECTURE
+-------------------------------------------------------------------------------
+Shared convolutional trunk (class Encoder1D), used once in the baseline and
+twice - with separate weights - in the multi-scale model:
+
+    input (B, C, 360)                    C = 1 or 2 leads
+      |
+    Conv1d(C -> 32,  kernel 7, pad 3, no bias)
+    BatchNorm1d(32) -> ReLU -> MaxPool1d(2) -> Dropout(0.1)      (B, 32, 180)
+      |
+    Conv1d(32 -> 64, kernel 5, pad 2, no bias)
+    BatchNorm1d(64) -> ReLU -> MaxPool1d(2) -> Dropout(0.1)      (B, 64,  90)
+      |
+    Conv1d(64 -> 128, kernel 3, pad 1, no bias)
+    BatchNorm1d(128) -> ReLU -> MaxPool1d(2) -> Dropout(0.1)     (B, 128, 45)
+      |
+    AdaptiveAvgPool1d(1) -> squeeze                              (B, 128)
+
+Kernel sizes narrow from 7 to 3 as the receptive field widens: the first layer
+sees roughly 20 ms of signal per tap and needs width to catch QRS shape; later
+layers operate on already-pooled features. Global average pooling rather than a
+flatten keeps the head independent of input length and avoids a large dense
+layer that would dominate the parameter count.
+
+
+BaselineCNN
+    beat window (B, C, 360)
+      -> Encoder1D -> (B, 128)
+      -> Linear(128 -> 64) -> ReLU -> Dropout(0.3) -> Linear(64 -> 5)
+
+
+MultiScaleCNN  (proposed)
+
+    beat window            rhythm context          RR features
+    (B, C, 360)            (B, C, 360)             (B, 4)
+    1.0 s @ 360 Hz         4.0 s, decimated x4
+        |                      |                       |
+    Encoder1D              Encoder1D                   |
+    (own weights)          (own weights)               |
+        |                      |                       |
+      (B, 128)               (B, 128)                  |
+        +----------------------+-----------------------+
+                               |
+                          concat (B, 260)
+                               |
+              Linear(260 -> 128) -> ReLU -> Dropout(0.3)
+              Linear(128 ->  64) -> ReLU -> Dropout(0.3)
+              Linear( 64 ->   5)
+                               |
+                    logits over N, S, V, F, Q
+
+The two branches do not share weights. Beat morphology and rhythm context are
+different signals at different time scales, and tying the filters would force
+one set to serve both.
+
+The four RR features are the preceding RR interval, the following RR interval,
+a causal 10-beat local average, and the ratio of the preceding interval to that
+average. They are standardised using TRAINING-set statistics only.
+
+
+4. LOSS FUNCTION
+-------------------------------------------------------------------------------
+Implemented in src/losses.py. Three variants form the second ablation axis.
+
+  ce            Plain cross-entropy.
+
+  weighted_ce   Cross-entropy with inverse-frequency class weights.
+
+  focal         Class-balanced focal loss (the proposed configuration):
+                effective-number reweighting from Cui et al. (2019) combined
+                with the focal term from Lin et al. (2017).
+
+                    L = -w_c (1 - p_t)^gamma log(p_t)
+                    w_c = (1 - beta) / (1 - beta^n_c),  clipped
+
+                gamma = 2.0, beta = 0.9999, weight ratio clipped at 50:1.
+
+A note on those two constants, because they were not obvious. beta caps the
+effective sample count at 1/(1 - beta). At the commonly quoted beta = 0.999
+that cap is 1,000, while class N holds about 38,000 training beats - so N, S
+and V all saturate to nearly the same weight and no rebalancing happens where
+it matters (S received only 1.85x the weight of N). Separately, class Q holds
+just 8 training beats and took roughly 78x the weight of S, letting a handful
+of unclassifiable beats dominate the gradient. Raising beta to 0.9999 and
+clipping the ratio at 50:1 gives S about 12.4x the weight of N and holds Q to
+4x S. This correction is documented in the docstring of
+src/losses.py::class_balanced_weights.
+
+
+5. TRAINING SETUP
+-------------------------------------------------------------------------------
+Optimiser          Adam, learning rate 1e-3, weight decay 1e-4
+Batch size         256
+Maximum epochs     30
+Early stopping     patience 8, monitored on validation macro F1
+LR schedule        ReduceLROnPlateau, factor 0.5, patience 3
+Gradient clipping  max norm 5.0
+Dropout            0.1 in conv blocks, 0.3 in the classifier head
+Seeds              0, 1, 2 - every reported score is mean +/- std over three runs
+Hardware           NVIDIA Tesla T4, PyTorch 2.10.0+cu128, Python 3.12.13
+
+Model selection uses validation macro F1 rather than accuracy or loss. On a
+dataset that is 89 % class N, accuracy would select a model that ignores every
+minority class.
+
+
+6. CHECKPOINTS
+-------------------------------------------------------------------------------
+Trained weights are produced by:
+
+    python scripts/export_models.py            # the two headline configs
+    python scripts/export_models.py --all      # all nine configurations
+
+Each .pt file is self-describing - it carries the weights plus the architecture,
+channel count, class list and full configuration - so it can be rebuilt without
+reference to the training script:
+
+    python scripts/load_model.py models/E4_inter_proposed_seed0.pt
+
+See models/README.md for the file format and a loading snippet.
+
+
+7. RESULTS SUMMARY
+-------------------------------------------------------------------------------
+Full numbers in results/results.csv; published comparison in
+results/comparison.csv.
+
+Inter-patient (DS1/DS2), mean of 3 seeds:
+
+  Model                    Params    Accuracy   Macro F1   S sens.
+  ---------------------   --------   --------   --------   -------
+  BaselineCNN (E2)          44,069     87.16      32.31       5.25
+  MultiScaleCNN (E4)       113,413     84.65      39.06      19.66
+
+Per-class, proposed model, inter-patient:
+
+  Class   Sensitivity   Pos. predictivity   F1
+  -----   -----------   -----------------   -----
+  N          87.34            96.52         91.66
+  S          19.66            31.27         23.08
+  V          91.66            63.20         74.59
+  F          29.38             3.32          5.96
+  Q           0.00             0.00          0.00     (15 beats total; ignore)
+
+Accuracy falls while macro F1 rises by 6.75 points. That is the expected
+trade: the proposed model stops over-predicting the majority class N, which
+costs raw accuracy and gains on every metric that treats the classes evenly.
+
+The same architecture reaches 98.63 % accuracy under an intra-patient split.
+The 13.99-point difference is produced entirely by the evaluation protocol -
+see README.md and results/comparison.csv.
+
+
+8. LIMITATIONS
+-------------------------------------------------------------------------------
+- Class Q has 15 beats in the whole dataset. Its metrics are meaningless.
+- Class F remains poor. Fusion beats are hybrids by definition and
+  cardiologist agreement on them is imperfect, so part of the error is in the
+  label rather than the model.
+- The component-level ablation is inconclusive at this sample size. Run-to-run
+  standard deviation on macro F1 is 4.92 points, larger than four of the five
+  ablation effects. Only the removal of RR features is resolvable
+  (-8.21 points, 5.3 pooled SD). This is attributed to model selection on a
+  4-record validation set: inter-patient runs stopped at epochs 9-14 while
+  intra-patient runs ran 19-30, indicating the validation signal is too noisy
+  to identify a good checkpoint reliably.
+- R-peak locations come from database annotations, not a detector.
+- Single database. Cross-database generalisation is untested.
+
+
+9. REFERENCES
+-------------------------------------------------------------------------------
+Cui Y, Jia M, Lin T-Y, Song Y, Belongie S. Class-Balanced Loss Based on
+Effective Number of Samples. CVPR 2019. arXiv:1901.05555
+
+Lin T-Y, Goyal P, Girshick R, He K, Dollar P. Focal Loss for Dense Object
+Detection. ICCV 2017. arXiv:1708.02002
+
+de Chazal P, O'Dwyer M, Reilly RB. Automatic classification of heartbeats using
+ECG morphology and heartbeat interval features. IEEE TBME 51(7):1196-1206, 2004.

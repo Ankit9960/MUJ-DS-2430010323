@@ -1,0 +1,163 @@
+DATASET INFORMATION
+===============================================================================
+Project : ECG arrhythmia classification under inter-patient vs intra-patient
+          evaluation
+Dataset : MIT-BIH Arrhythmia Database
+
+
+1. SOURCE
+-------------------------------------------------------------------------------
+Name        MIT-BIH Arrhythmia Database
+Repository  PhysioNet, database slug "mitdb", version 1.0.0
+URL         https://physionet.org/content/mitdb/1.0.0/
+Licence     Open Data Commons Attribution License v1.0
+Size        approximately 100 MB for the 44 records used here
+
+The raw signal files are NOT included in this submission. They are third-party
+data, freely redistributable from PhysioNet, and are regenerated in about five
+minutes by:
+
+    python scripts/prepare_data.py
+
+That command downloads the records into data/raw/, segments every annotated
+heartbeat, and caches the result as one .npz file per record in
+data/processed/. Both directories are excluded by .gitignore.
+
+
+2. RECORDING PROTOCOL
+-------------------------------------------------------------------------------
+Subjects          47 patients (records numbered 100-124 and 200-234)
+Recordings        48 half-hour two-channel ambulatory ECG excerpts
+Sampling rate     360 Hz per channel
+Resolution        11-bit over a 10 mV range
+Channels          2 leads. The first is modified limb lead II (MLII) in all but
+                  two records; the second is usually V1, occasionally V2, V4
+                  or V5. This project places the limb lead in channel 0 for
+                  every record so the channel index is consistent.
+Annotations       Every heartbeat is labelled by two independent cardiologists,
+                  with disagreements resolved by consensus. Roughly 110,000
+                  beat annotations in total.
+
+
+3. RECORDS USED
+-------------------------------------------------------------------------------
+44 of the 48 records are used.
+
+Excluded (4)  102, 104, 107, 217
+              These are paced-rhythm records. AAMI EC57 excludes them because a
+              pacemaker artefact dominates the morphology and the resulting
+              beats are not representative of the arrhythmia classes.
+
+The 44 remaining records are divided by PATIENT, following de Chazal et al.
+(2004). The two sets share no patient, which is the entire point of the
+protocol.
+
+DS1 - training (22 records)
+  101, 106, 108, 109, 112, 114, 115, 116, 118, 119, 122, 124,
+  201, 203, 205, 207, 208, 209, 215, 220, 223, 230
+
+  Of these, 4 records are held out as an inter-patient validation set for
+  early stopping: 114, 124, 205, 223. Model selection therefore never sees a
+  training patient or a test patient. The remaining 18 records train the model.
+
+DS2 - testing (22 records)
+  100, 103, 105, 111, 113, 117, 121, 123, 200, 202, 210, 212,
+  213, 214, 219, 221, 222, 228, 231, 232, 233, 234
+
+
+4. CLASS MAPPING (AAMI EC57)
+-------------------------------------------------------------------------------
+The database's 15 beat annotation symbols are collapsed into the 5 AAMI classes
+used throughout this project. Non-beat annotations (+ ~ | x ] [ ! ") mark rhythm
+or signal-quality events rather than heartbeats and are discarded.
+
+  AAMI  Meaning                        MIT-BIH symbols
+  ----  ----------------------------   ---------------------------------------
+  N     Normal / bundle branch block   N (normal), L (LBBB), R (RBBB),
+                                       e (atrial escape), j (nodal escape)
+  S     Supraventricular ectopic       A (atrial premature), a (aberrated
+                                       atrial premature), J (nodal premature),
+                                       S (supraventricular premature)
+  V     Ventricular ectopic            V (premature ventricular contraction),
+                                       E (ventricular escape)
+  F     Fusion                         F (fusion of ventricular and normal)
+  Q     Unknown / paced                / (paced), f (fusion of paced and
+                                       normal), Q (unclassifiable)
+
+
+5. CLASS DISTRIBUTION AFTER PREPROCESSING
+-------------------------------------------------------------------------------
+Total usable beats: 100,509 across the 44 records.
+
+  Class      Beats     Share
+  -----   ---------   -------
+  N          89,921    89.47 %
+  S           2,776     2.76 %
+  V           6,996     6.96 %
+  F             801     0.80 %
+  Q              15     0.01 %
+
+Imbalance ratio, largest to smallest class: about 5,995 : 1.
+
+Two consequences shape the whole project:
+
+  - A model that predicts N for every beat scores about 89 % accuracy while
+    detecting nothing clinically useful. This is why every result in this
+    project reports macro F1 and per-class sensitivity alongside accuracy, and
+    why the loss function is an axis of the ablation study.
+
+  - Class Q retains only 15 beats once the paced records are removed, because
+    the "/" and "f" symbols occur almost exclusively in those records. Its
+    metrics are reported for completeness but carry no statistical weight and
+    should not be interpreted.
+
+
+6. PREPROCESSING APPLIED
+-------------------------------------------------------------------------------
+Implemented in src/preprocessing.py.
+
+  1. Bandpass filter  0.5-40 Hz Butterworth, order 3, applied with filtfilt for
+                      zero phase distortion. Removes baseline wander below
+                      0.5 Hz and high-frequency noise above 40 Hz without
+                      shifting the QRS complex in time.
+
+  2. Normalisation    Per-record z-score, per channel. This is deliberate: raw
+                      amplitude varies with electrode placement and skin
+                      impedance, so it acts as a patient fingerprint. Leaving it
+                      in would let a model identify the patient rather than the
+                      arrhythmia, which is exactly what the inter-patient
+                      protocol exists to prevent.
+
+  3. Beat window      180 samples before and 180 samples after the annotated
+                      R peak: 360 samples, 1.0 second.
+
+  4. Context window   720 samples either side of the R peak, decimated by 4:
+                      360 samples covering 4.0 seconds. Gives the model the
+                      surrounding rhythm rather than the isolated beat.
+
+  5. RR features      Four values per beat: the preceding RR interval, the
+                      following RR interval, a causal 10-beat local average,
+                      and the ratio of the preceding interval to that average.
+                      The ratio is what makes a premature beat identifiable.
+
+  6. Edge handling    Beats whose windows would extend past the start or end of
+                      the recording are dropped rather than zero-padded.
+
+R-peak locations are taken from the database annotations, not from a detector.
+This project therefore evaluates beat CLASSIFICATION in isolation; a deployed
+system would additionally inherit R-peak detection errors.
+
+
+7. CITATION
+-------------------------------------------------------------------------------
+Moody GB, Mark RG. The impact of the MIT-BIH Arrhythmia Database.
+IEEE Engineering in Medicine and Biology Magazine 20(3):45-50, 2001.
+
+Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
+Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and
+PhysioNet: Components of a New Research Resource for Complex Physiologic
+Signals. Circulation 101(23):e215-e220, 2000.
+
+de Chazal P, O'Dwyer M, Reilly RB. Automatic classification of heartbeats using
+ECG morphology and heartbeat interval features. IEEE Transactions on Biomedical
+Engineering 51(7):1196-1206, 2004.  [defines the DS1/DS2 split used here]

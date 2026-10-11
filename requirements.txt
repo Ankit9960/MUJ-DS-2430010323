@@ -1,0 +1,16 @@
+# Core
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.3
+matplotlib>=3.7
+
+# Deep learning
+# CPU-only install (smaller, works everywhere):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.0
+
+# MIT-BIH / PhysioNet access
+wfdb>=4.1
+
+# Optional: nicer test output
+# pytest>=7.4

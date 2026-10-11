@@ -1,0 +1,188 @@
+{
+  "accuracy": 0.9064333380375396,
+  "macro_f1": 0.39240153172828346,
+  "kappa": 0.5708411599724116,
+  "S_sensitivity": 0.2042483660130719,
+  "S_positive_predictivity": 0.3803245436105477,
+  "V_sensitivity": 0.9561157796451915,
+  "V_positive_predictivity": 0.6107355864811134,
+  "per_class": {
+    "N": {
+      "support": 44157,
+      "tp": 41513,
+      "fp": 1645,
+      "fn": 2644,
+      "sensitivity": 0.9401227438458228,
+      "positive_predictivity": 0.9618842393067334,
+      "specificity": 0.6978324761204996,
+      "f1": 0.9508790013170703
+    },
+    "S": {
+      "support": 1836,
+      "tp": 375,
+      "fp": 611,
+      "fn": 1461,
+      "sensitivity": 0.2042483660130719,
+      "positive_predictivity": 0.3803245436105477,
+      "specificity": 0.987208206846017,
+      "f1": 0.2657689581856839
+    },
+    "V": {
+      "support": 3213,
+      "tp": 3072,
+      "fp": 1958,
+      "fn": 141,
+      "sensitivity": 0.9561157796451915,
+      "positive_predictivity": 0.6107355864811134,
+      "specificity": 0.9577908079675779,
+      "f1": 0.7453596991386631
+    },
+    "F": {
+      "support": 388,
+      "tp": 0,
+      "fp": 427,
+      "fn": 388,
+      "sensitivity": 0.0,
+      "positive_predictivity": 0.0,
+      "specificity": 0.9913234308008047,
+      "f1": 0.0
+    },
+    "Q": {
+      "support": 7,
+      "tp": 0,
+      "fp": 0,
+      "fn": 7,
+      "sensitivity": 0.0,
+      "positive_predictivity": NaN,
+      "specificity": 1.0,
+      "f1": 0.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      41513,
+      591,
+      1643,
+      410,
+      0
+    ],
+    [
+      1204,
+      375,
+      255,
+      2,
+      0
+    ],
+    [
+      106,
+      20,
+      3072,
+      15,
+      0
+    ],
+    [
+      332,
+      0,
+      56,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      4,
+      0,
+      0
+    ]
+  ],
+  "n_test_beats": 49601,
+  "config": {
+    "name": "A3_no_context",
+    "protocol": "inter",
+    "loss": "focal",
+    "arch": "baseline",
+    "leads": "dual",
+    "use_rr": true,
+    "seed": 2,
+    "epochs": 30,
+    "batch_size": 256,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "patience": 8,
+    "dropout": 0.3,
+    "focal_gamma": 2.0,
+    "cb_beta": 0.9999,
+    "synthetic": false,
+    "notes": "Isolates the multi-scale contribution.",
+    "tags": [],
+    "in_channels": 2
+  },
+  "best_val_macro_f1": 0.4538887911349274,
+  "epochs_run": 10,
+  "train_seconds": 20.1,
+  "n_parameters": 44549,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.02462358694031662,
+      "val_macro_f1": 0.3571598666109743,
+      "val_accuracy": 0.9309003546504977
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.01179760364192046,
+      "val_macro_f1": 0.4538887911349274,
+      "val_accuracy": 0.9613316554170004
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.00931180663808647,
+      "val_macro_f1": 0.37119906796279645,
+      "val_accuracy": 0.9325020020592609
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.00799673195346311,
+      "val_macro_f1": 0.45101115335379954,
+      "val_accuracy": 0.9530946116005033
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.0073915904912916774,
+      "val_macro_f1": 0.38032367646576154,
+      "val_accuracy": 0.9335316325363231
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.006849395016926854,
+      "val_macro_f1": 0.42907231365994214,
+      "val_accuracy": 0.9373069442855508
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.005891885759567258,
+      "val_macro_f1": 0.37450706523140126,
+      "val_accuracy": 0.9350188765587462
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.005170970499925636,
+      "val_macro_f1": 0.41640404977175843,
+      "val_accuracy": 0.93684933074019
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.005461383659918608,
+      "val_macro_f1": 0.4147677311189263,
+      "val_accuracy": 0.9406246424894177
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.004790873647296348,
+      "val_macro_f1": 0.4526319810739158,
+      "val_accuracy": 0.9424550966708615
+    }
+  ],
+  "n_train_beats": 42167,
+  "n_val_beats": 8741
+}

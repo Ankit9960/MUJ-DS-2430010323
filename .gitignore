@@ -1,0 +1,25 @@
+# Data (regenerate with scripts/prepare_data.py)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Self-test scratch output
+results/figures/_selftest/
+RESULTS_SMOKE.md
+results/raw/SMOKE_*
+results/figures/SMOKE_*
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+*.egg-info/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

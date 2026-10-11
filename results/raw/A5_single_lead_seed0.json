@@ -1,0 +1,182 @@
+{
+  "accuracy": 0.8782887441785447,
+  "macro_f1": 0.40030131699291704,
+  "kappa": 0.5172298151804594,
+  "S_sensitivity": 0.20261437908496732,
+  "S_positive_predictivity": 0.36363636363636365,
+  "V_sensitivity": 0.8521630874572051,
+  "V_positive_predictivity": 0.6235481667046231,
+  "per_class": {
+    "N": {
+      "support": 44157,
+      "tp": 40327,
+      "fp": 955,
+      "fn": 3830,
+      "sensitivity": 0.9132640351473152,
+      "positive_predictivity": 0.9768664308899763,
+      "specificity": 0.8245775165319618,
+      "f1": 0.9439951310291552
+    },
+    "S": {
+      "support": 1836,
+      "tp": 372,
+      "fp": 651,
+      "fn": 1464,
+      "sensitivity": 0.20261437908496732,
+      "positive_predictivity": 0.36363636363636365,
+      "specificity": 0.9863707735789804,
+      "f1": 0.26023084994753404
+    },
+    "V": {
+      "support": 3213,
+      "tp": 2738,
+      "fp": 1653,
+      "fn": 475,
+      "sensitivity": 0.8521630874572051,
+      "positive_predictivity": 0.6235481667046231,
+      "specificity": 0.9643657842545486,
+      "f1": 0.7201472908995266
+    },
+    "F": {
+      "support": 388,
+      "tp": 127,
+      "fp": 2778,
+      "fn": 261,
+      "sensitivity": 0.327319587628866,
+      "positive_predictivity": 0.043717728055077454,
+      "specificity": 0.9435515006197549,
+      "f1": 0.07713331308836927
+    },
+    "Q": {
+      "support": 7,
+      "tp": 0,
+      "fp": 0,
+      "fn": 7,
+      "sensitivity": 0.0,
+      "positive_predictivity": NaN,
+      "specificity": 1.0,
+      "f1": 0.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      40327,
+      528,
+      713,
+      2589,
+      0
+    ],
+    [
+      514,
+      372,
+      930,
+      20,
+      0
+    ],
+    [
+      183,
+      123,
+      2738,
+      169,
+      0
+    ],
+    [
+      256,
+      0,
+      5,
+      127,
+      0
+    ],
+    [
+      2,
+      0,
+      5,
+      0,
+      0
+    ]
+  ],
+  "n_test_beats": 49601,
+  "config": {
+    "name": "A5_single_lead",
+    "protocol": "inter",
+    "loss": "focal",
+    "arch": "multiscale",
+    "leads": "single",
+    "use_rr": true,
+    "seed": 0,
+    "epochs": 30,
+    "batch_size": 256,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "patience": 8,
+    "dropout": 0.3,
+    "focal_gamma": 2.0,
+    "cb_beta": 0.9999,
+    "synthetic": false,
+    "notes": "Isolates the value of the second channel.",
+    "tags": [],
+    "in_channels": 1
+  },
+  "best_val_macro_f1": 0.4723036380847807,
+  "epochs_run": 9,
+  "train_seconds": 29.3,
+  "n_parameters": 112965,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.030275802141136347,
+      "val_macro_f1": 0.4723036380847807,
+      "val_accuracy": 0.9482896693742134
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.01364445611916467,
+      "val_macro_f1": 0.44867854393796724,
+      "val_accuracy": 0.9355908934904473
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.010805658392679196,
+      "val_macro_f1": 0.4619233850950856,
+      "val_accuracy": 0.9514929641917401
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.009151106561973254,
+      "val_macro_f1": 0.4670644891122278,
+      "val_accuracy": 0.9590435876901956
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.008282083833657868,
+      "val_macro_f1": 0.4232371577387273,
+      "val_accuracy": 0.9406246424894177
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.006570861399768571,
+      "val_macro_f1": 0.4373550322724896,
+      "val_accuracy": 0.9438279373069443
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.0065037795764755196,
+      "val_macro_f1": 0.36924412862374006,
+      "val_accuracy": 0.9303283377187965
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.006130327388747937,
+      "val_macro_f1": 0.36749922280115843,
+      "val_accuracy": 0.9306715478778171
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.005860349806904005,
+      "val_macro_f1": 0.44522576971949906,
+      "val_accuracy": 0.940281432330397
+    }
+  ],
+  "n_train_beats": 42167,
+  "n_val_beats": 8741
+}

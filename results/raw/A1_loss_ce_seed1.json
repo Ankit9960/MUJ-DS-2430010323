@@ -1,0 +1,188 @@
+{
+  "accuracy": 0.9103445495050503,
+  "macro_f1": 0.3523626664025218,
+  "kappa": 0.5720471286104429,
+  "S_sensitivity": 0.11764705882352941,
+  "S_positive_predictivity": 0.14713896457765668,
+  "V_sensitivity": 0.7967631497043262,
+  "V_positive_predictivity": 0.5719392314566577,
+  "per_class": {
+    "N": {
+      "support": 44157,
+      "tp": 42378,
+      "fp": 1279,
+      "fn": 1779,
+      "sensitivity": 0.9597119369522386,
+      "positive_predictivity": 0.9707034381657008,
+      "specificity": 0.7650624540778839,
+      "f1": 0.9651763955633498
+    },
+    "S": {
+      "support": 1836,
+      "tp": 216,
+      "fp": 1252,
+      "fn": 1620,
+      "sensitivity": 0.11764705882352941,
+      "positive_predictivity": 0.14713896457765668,
+      "specificity": 0.9737883387417565,
+      "f1": 0.13075060532687655
+    },
+    "V": {
+      "support": 3213,
+      "tp": 2560,
+      "fp": 1916,
+      "fn": 653,
+      "sensitivity": 0.7967631497043262,
+      "positive_predictivity": 0.5719392314566577,
+      "specificity": 0.9586962145382426,
+      "f1": 0.6658863311223826
+    },
+    "F": {
+      "support": 388,
+      "tp": 0,
+      "fp": 0,
+      "fn": 388,
+      "sensitivity": 0.0,
+      "positive_predictivity": NaN,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Q": {
+      "support": 7,
+      "tp": 0,
+      "fp": 0,
+      "fn": 7,
+      "sensitivity": 0.0,
+      "positive_predictivity": NaN,
+      "specificity": 1.0,
+      "f1": 0.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      42378,
+      757,
+      1022,
+      0,
+      0
+    ],
+    [
+      800,
+      216,
+      820,
+      0,
+      0
+    ],
+    [
+      158,
+      495,
+      2560,
+      0,
+      0
+    ],
+    [
+      317,
+      0,
+      71,
+      0,
+      0
+    ],
+    [
+      4,
+      0,
+      3,
+      0,
+      0
+    ]
+  ],
+  "n_test_beats": 49601,
+  "config": {
+    "name": "A1_loss_ce",
+    "protocol": "inter",
+    "loss": "ce",
+    "arch": "multiscale",
+    "leads": "dual",
+    "use_rr": true,
+    "seed": 1,
+    "epochs": 30,
+    "batch_size": 256,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "patience": 8,
+    "dropout": 0.3,
+    "focal_gamma": 2.0,
+    "cb_beta": 0.9999,
+    "synthetic": false,
+    "notes": "Isolates the imbalance handling.",
+    "tags": [],
+    "in_channels": 2
+  },
+  "best_val_macro_f1": 0.4779964422783426,
+  "epochs_run": 10,
+  "train_seconds": 34.1,
+  "n_parameters": 113413,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.26786101468132356,
+      "val_macro_f1": 0.3752842876316941,
+      "val_accuracy": 0.9363917171948289
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.09211307021910707,
+      "val_macro_f1": 0.4779964422783426,
+      "val_accuracy": 0.9601876215535979
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.0676603465277577,
+      "val_macro_f1": 0.3964193061810525,
+      "val_accuracy": 0.9415398695801396
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.05481555049832442,
+      "val_macro_f1": 0.4108694478101269,
+      "val_accuracy": 0.9476032490561721
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.04804531485893619,
+      "val_macro_f1": 0.4287275768461045,
+      "val_accuracy": 0.9520649811234413
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.045128147582913725,
+      "val_macro_f1": 0.40780966259387963,
+      "val_accuracy": 0.9410822560347786
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.03682790996993288,
+      "val_macro_f1": 0.420008503217531,
+      "val_accuracy": 0.9502345269419975
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.03508000932964291,
+      "val_macro_f1": 0.4308299533799534,
+      "val_accuracy": 0.9533234183731838
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.03322703799552079,
+      "val_macro_f1": 0.42985558694754455,
+      "val_accuracy": 0.9536666285322045
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.03120646869618977,
+      "val_macro_f1": 0.42486678431188696,
+      "val_accuracy": 0.9506921404873584
+    }
+  ],
+  "n_train_beats": 42167,
+  "n_val_beats": 8741
+}
